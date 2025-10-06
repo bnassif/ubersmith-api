@@ -1,0 +1,49 @@
+[project]
+name = "ubersmith-api"
+authors = [
+    { name="Ben Nassif", email="bennassif@gmail.com" }
+]
+
+dynamic = ["version"]
+
+description = "Version-specific Python 3 wrapper for the Ubersmith API"
+readme = "README.md"
+
+requires-python = ">=3.10"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = [
+    "api", "wrapper", "ubersmith", "client"
+]
+
+license = "MIT"
+license-files = [
+    "LICEN[CS]E"
+]
+
+dependencies = [
+    "requests >= 1.0.4",
+    "pydantic-settings >= 2.1.0",
+    "pydantic >= 2.5.2",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "ubersmith.__version__.__version__" }
+
+[project.urls]
+homepage = "https://github.com/bnassif/ubersmith-api"
+issues = "https://github.com/bnassif/ubersmith-api/issues"
+
+[project.optional-dependencies]
+build = [
+    "jinja2",
+]

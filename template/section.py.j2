@@ -1,0 +1,43 @@
+{#------------------------------------------------------------------------------
+ Auto-generated: DO NOT EDIT
+ Section: {{ section_name }}
+ Service version: {{ service_version }}
+ Generated at: {{ generated_at_iso }}
+ Generator: {{ generator_version }}
+------------------------------------------------------------------------------#}
+from ubersmith.core.section import *
+
+class {{ section_name | capitalize }}API(Section):
+    """
+    Auto-generated section for ``{{ section_name }}``.
+
+    Contains all ``{{ section_name }}.*`` API methods.
+    """    
+{% for m_name, m_data in section_data.items() %}
+
+    def {{ m_name }}(
+        self,
+{% if m_data.req_params %}{% for p in m_data.req_params %}
+        {{ p.param }},
+{% endfor %}{% endif %}
+{% if m_data.opt_params %}{% for p in m_data.opt_params %}
+        {{ p.param }}=None,
+{% endfor %}{% endif %}
+        ) -> dict:
+        """{{ m_data.title }}
+        {{ m_data.method }}
+        {{ m_data.description | default("") }}
+
+        Args:
+{% for p in m_data.req_params %}
+            {{ p.param }}: {% if p.name %}{{ p.name }}{% endif %}
+
+{% endfor %}
+{% for p in m_data.opt_params %}
+            {{ p.param }}: {% if p.name %}{{ p.name }}{% endif %} Defaults to None.
+{% endfor %}
+        Returns:
+            dict: The dictionary response from the method 
+        """
+        return self._request(self.{{ m_name }}, locals())
+{% endfor %}

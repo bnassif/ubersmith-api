@@ -1,0 +1,38 @@
+{# Auto-generated: DO NOT EDIT #}
+from copy import deepcopy
+from ubersmith.core.api import *
+
+{% for s in sections -%}
+from .{{ s }} import {{ s | capitalize }}API
+{% endfor %}
+
+__all__ = [
+{% for s in sections %}
+    "{{ s | capitalize }}API",
+{% endfor %}
+    "APIClient",
+    "Config",
+    "get_full_client",
+]
+
+def get_full_client(client: APIClient = None, config: Config = None) -> APIClient:
+    if not client or config:
+        raise Exception('Must supply either a client or config, not both')
+    
+    if not client:
+        # Get a client if config supplied
+        c = APIClient(config=config)
+    else:
+        # Otherwise, copy the provided client to not modify-in-place
+        c = deepcopy(client)
+        
+    # Get the config if config not supplied
+    if not config:
+        config = c.config
+    
+    # Bind the sections to the client
+{% for s in sections %}
+    c.{{ s }} = {{ s|capitalize }}API(config=config)
+{% endfor %}
+    
+    return c

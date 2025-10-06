@@ -1,0 +1,61 @@
+name: release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ubersmith-api
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout (full history for tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version from tag
+        id: ver
+        run: |
+          RAW_TAG="${{ github.event.release.tag_name }}"
+          # strip a leading 'v' if present (v1.2.3 -> 1.2.3)
+          STRIPPED="${RAW_TAG#v}"
+          echo "version=$STRIPPED" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Upgrade build tooling
+        run: python -m pip install --upgrade pip build
+
+      - name: Build release artifacts
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          # Ensure dist dir is fresh
+          rm -rf dist
+          mkdir -p dist
+          make release VERSION="$VERSION"
+          echo "Artifacts:"
+          ls -l dist || true
+
+      - name: Upload artifacts to the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
