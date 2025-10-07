@@ -1,5 +1,6 @@
 import requests
 import urllib3
+import json
 
 from ubersmith.config import UbersmithConfig
 from ubersmith.util.cleaners import *
@@ -49,22 +50,33 @@ class BaseClient:
         if data:
             clean_all(data)
         
+        # Construct the base request keyword arguments
+        kwargs = dict(
+            # API URL of the request
+            url=f"{self.config.api_url}/?method={command}",
+            # Add basic authentication using the user/pass
+            auth=(self.config.username, self.config.password),
+            # Add the timeout from the config
+            timeout=self.config.api_timeout,
+            verify=self.config.verify,
+        )
+        
+        # Add onto the arguments as needed
+        if files:
+            # Attach files, if supplied
+            kwargs['files'] = get_files(files)
+            if data:
+                # Pass through data as json-encoded form data, if supplied
+                kwargs['data'] = json.dumps(data)
+        elif data:
+            # Otherwise, if no files and data, pass data through as JSON
+            kwargs['json'] = data
+        
+        
         tries = 0
         for _ in range(tries, self.config.api_tries):
             try:
-                response = requests.post(
-                    # API URL of the request
-                    url=f"{self.config.api_url}/?method={command}",
-                    # Pass through data, if supplied
-                    data=data,
-                    # Attach files, if supplied
-                    files=get_files(files),
-                    # Add basic authentication using the user/pass
-                    auth=(self.config.username, self.config.password),
-                    # Add the timeout from the config
-                    timeout=self.config.api_timeout,
-                    verify=self.config.verify,
-                )
+                response = requests.post(**kwargs)
                 if not raw:
                     return parse_response(response)
                 return response

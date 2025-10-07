@@ -28,7 +28,7 @@ pip install git+'https://github.com/bnassif/ubersmith-api.git'
 
 ### Instantiating the Base Client
 ```python
-from ubersmith_api import *
+from ubersmith import *
 
 config = UbersmithConfig(
     host='target-hostname-or-address',
