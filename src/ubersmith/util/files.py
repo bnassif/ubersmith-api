@@ -1,3 +1,5 @@
+from io import BufferedReader
+
 __all__ = [
     'get_files',
 ]
@@ -9,7 +11,7 @@ def get_files(attachments: dict):
     for k, v in attachments.items():
         if type(v) is str:
             files[k] = open(v, 'rb')
-        elif type(v) is bytes:
+        elif type(v) is BufferedReader:
             files[k] = v
         else:
             raise Exception(f'Invalid attachment {k}: Type {type(v)}')
