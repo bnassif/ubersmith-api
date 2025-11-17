@@ -66,8 +66,7 @@ class BaseClient:
             # Attach files, if supplied
             kwargs['files'] = get_files(files)
             if data:
-                # Pass through data as json-encoded form data, if supplied
-                kwargs['data'] = json.dumps(data)
+                kwargs['data'] = data
         elif data:
             # Otherwise, if no files and data, pass data through as JSON
             kwargs['json'] = data
