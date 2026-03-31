@@ -1,5 +1,5 @@
 from ubersmith.client.api import *
-import inspect
+from typing import Dict
 
 __all__ = [
     'UbersmithClient',
@@ -42,55 +42,19 @@ class Section:
             # Binds a supplied config, or allows the underlying client to instantiate one
             self._client = UbersmithClient(config=config)
     
-    def _get_parameters(self, method, inputs: dict) -> dict:
-        """Returns the Signature of the target Method
-        
-        This method is used to simplify how parameters in a method are passed to the underlying client
-        as keyword arguments to reduce templating/development work needed.
-
-        Args:
-            method (method): The method to inspect
-        
-        Returns:
-            dict: The dictionary of *args **kwargs passed to a method
-        """
-        data = {}
-        meta = None
-        # Get the parameters of the provided method
-        params = list(inspect.signature(method).parameters.keys())
-        
-        # If meta is in the parameters, remove it prior to looping
-        # We'll add these with Ubersmith's desired structure after handlilng the initial bit
-        if 'meta' in params:
-            # Get the meta inputs separate from the rest
-            meta = inputs.pop('meta')
-            # Remove meta from the params to inspect
-            params.remove('meta')
-                
-        for p in params:
-            data.update({p: inputs[p]})
-        
-        if meta:
-            # If meta is supplied, add those under the `meta_` arguments
-            for k, v in meta.items():
-                data.update({f'meta_{k}': v})
-                
-        return data
-    
-    def _get_section_name(self):
-        return self.__class__.__name__.rstrip('API').lower()
-    
-    def _request(self, method, inputs):
+    def _request(self, method: str, **kwargs):
         """Sends a request using the underlying client
         
         This method takes the calling method at the first parameter to perform inspection on it.
         Locals are also passed from the calling parameter so they can be formed and passed to the API.
 
         Args:
-            method (method): The calling method, passed through raw
-            data (dict, optional): _description_. Defaults to None.
+            method (str): The calling method, passed through raw
         """
-        data = self._get_parameters(method, inputs)
-        command=f'{self._get_section_name()}.{method.__name__}'
         
-        return self._client.request(command, data=data, parsed=True)
+        if 'meta' in kwargs:
+            meta: Dict = kwargs.pop('meta')
+            for k, v in meta.items():
+                kwargs.update({f'meta_{k}': v})
+        
+        return self._client.request(method, data=kwargs)

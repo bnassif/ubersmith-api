@@ -51,6 +51,14 @@ def render_section(out_dir: pathlib.Path, section_name: str, section_data: dict)
     env = jinja_env()
     section_tpl = env.get_template("section.py.j2")
     
+    # Sort the parameters for each method in the section
+    for _, data in section_data.items():
+        req, opt = sort_parameters(data['params'])
+        data.update(req_params=req, opt_params=opt)
+    
+    if 'basic_search' in list(section_data.keys()):
+        _ = section_data.pop('basic_search')
+    
     # Write the section file
     out_path = out_dir / f"{section_name}.py"
     out_path.parent.mkdir(parents=True, exist_ok=True)

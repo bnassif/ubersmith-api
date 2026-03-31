@@ -37,7 +37,7 @@ def get_sections(client: UbersmithClient) -> dict:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("-h", "--host", required=True)
+    ap.add_argument("-H", "--host", required=True)
     ap.add_argument("-P", "--port", default=None)
     ap.add_argument("-u", "--username", required=True)
     ap.add_argument("-p", "--password", required=True)
