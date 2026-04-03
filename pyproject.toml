@@ -42,8 +42,3 @@ version = { attr = "ubersmith.__version__.__version__" }
 [project.urls]
 homepage = "https://github.com/bnassif/ubersmith-api"
 issues = "https://github.com/bnassif/ubersmith-api/issues"
-
-[project.optional-dependencies]
-build = [
-    "jinja2",
-]

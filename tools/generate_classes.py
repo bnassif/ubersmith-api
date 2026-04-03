@@ -4,9 +4,11 @@ import argparse
 import pathlib
 import json
 
+from typing import Dict
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+THIS_FILE = pathlib.Path(__file__)
+REPO_ROOT = THIS_FILE.resolve().parents[1]
 TEMPLATE_DIR = REPO_ROOT / "template"
 
 def jinja_env() -> Environment:
@@ -64,34 +66,57 @@ def render_section(out_dir: pathlib.Path, section_name: str, section_data: dict)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(section_tpl.render(section_name=section_name, section_data=section_data), encoding='utf-8')
 
-def render_init(init_file: pathlib.Path, sections: list[str]) -> None:
+def render_init(init_file: pathlib.Path, sections: list[str], module: str) -> None:
     env = jinja_env()
     init_tpl = env.get_template('api__init__.py.j2')
-    init_file.write_text(init_tpl.render(sections=sections))
+    init_file.write_text(init_tpl.render(sections=sections, module=module))
+
+
+def render(source: pathlib.Path, destination: pathlib.Path) -> bool:    
+    version = source.name.rstrip(source.suffix)
+    module = 'v' + version.replace('.', '_').replace('-', '_')
+    
+    print(f'Rendering Version {version} from {source} to {module}')
+    
+    out_dir : pathlib.Path = (destination / module)
+    
+    try:
+        out_dir.mkdir()
+    except FileExistsError:
+        # Ignore errors when the directory exists
+        ...
+    
+    with open(source, 'r') as f:
+        schema_data: Dict[Dict] = json.load(f)
+    
+    init_file = (out_dir / '__init__.py')
+    print(f'    {version} - Rendering {init_file}')
+    render_init(init_file, sections=list(schema_data.keys()), module=module)
+    
+    for section_name, section_data in schema_data.items():
+        print(f'        Rendering Section: {section_name}: {len(section_data)} methods')
+        render_section(out_dir=out_dir, section_name=section_name, section_data=section_data)
+
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("-o", "--out-dir", default="../src/ubersmith/api")
-    ap.add_argument("-s", "--schema-dir", default='../schema')
-    ap.add_argument("-f", "--filename", required=True)
+    ap.add_argument("-s", "--schema-dir", default='schema')
+    ap.add_argument("-o", "--output-dir", default='src/ubersmith/versions')
+    ap.add_argument("-f", "--filename", default=None)
     args = ap.parse_args()
     
-    out_dir = pathlib.Path(args.out_dir)
-    schema_dir = pathlib.Path(args.schema_dir)
-    schema_file = (schema_dir / args.filename)
+    schema_dir = pathlib.Path(REPO_ROOT / args.schema_dir)
+    output_dir = pathlib.Path(REPO_ROOT / args.output_dir)
     
-    print(f'Generating client from {schema_file}')
-    
-    with open(schema_file, 'r') as f:
-        schema_data = json.load(f)
-    
-    init_file = out_dir / '__init__.py'    
-    print(f'Rendering {init_file}')
-    render_init(init_file, sections=list(schema_data.keys()))
+    if args.filename:
+        # Process a single schema file, if supplied
+        schema_file: pathlib.Path = (schema_dir / args.filename)
+        render(source=schema_file, destination=output_dir)
+    else:
+        # Otherwise, process all schema files
+        for schema_file in schema_dir.iterdir():
+            render(source=schema_file, destination=output_dir)
 
-    for section_name, section_data in schema_data.items():
-        print(f'Rendering Section: {section_name}: {len(section_data)} methods')
-        render_section(out_dir=out_dir, section_name=section_name, section_data=section_data)
 
 if __name__ == "__main__":
     main()

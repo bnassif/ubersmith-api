@@ -43,8 +43,6 @@ jobs:
           VERSION: ${{ steps.ver.outputs.version }}
         run: |
           # Ensure dist dir is fresh
-          rm -rf dist
-          mkdir -p dist
           make release VERSION="$VERSION"
           echo "Artifacts:"
           ls -l dist || true

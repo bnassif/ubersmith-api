@@ -1,6 +1,12 @@
 from ubersmith.client.api import *
 from typing import Dict
 
+"""
+This module is not meant to be imported or used directly.
+
+It is used by the modules in `ubersmith.version.*` to provide a universal entrypoint to API section logic.
+"""
+
 __all__ = [
     'UbersmithClient',
     'UbersmithConfig',

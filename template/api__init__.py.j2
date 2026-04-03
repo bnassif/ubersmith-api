@@ -1,10 +1,9 @@
 {# Auto-generated: DO NOT EDIT #}
 from copy import deepcopy
-from ubersmith.client import *
-from ubersmith.api.core import *
+from ubersmith.client.section import *
 
 {% for s in sections -%}
-from ubersmith.api.{{ s }} import {{ s | capitalize }}API
+from ubersmith.versions.{{ module }}.{{ s }} import {{ s | capitalize }}API
 {% endfor %}
 
 __all__ = [

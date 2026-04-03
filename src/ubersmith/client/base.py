@@ -1,6 +1,6 @@
 import requests
 import urllib3
-import json
+from typing import Union, List, Dict
 
 from ubersmith.config import UbersmithConfig
 from ubersmith.util.cleaners import *
@@ -31,7 +31,7 @@ class BaseClient:
         """
         self.config = config if config else UbersmithConfig()
     
-    def request(self, command: str, data: dict = None, files: dict = None, raw: bool = False) -> requests.Response:
+    def request(self, command: str, data: dict = None, files: dict = None, raw: bool = False) -> Union[List|Dict|requests.Response]:
         """
         Makes a request to the Ubersmith API
         
@@ -40,7 +40,7 @@ class BaseClient:
             data (dict, optional): The POST data to send in the request. Defaults to None.
 
         Returns:
-            requests.Response: The resposne from the Ubersmith API
+            Union[List|Dict|requests.Response]: The resposne from the Ubersmith API
         """
         
         if not self.config.verify:
