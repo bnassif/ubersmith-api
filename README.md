@@ -9,14 +9,8 @@ Python wrappers exist on PyPI and across GitHub for interacting with the Ubersmi
 
 In comes `ubersmith-api`...
 
-## Overview
-
-At its core, this package provides a generic API wrapper class, `UbersmithClient` which allows for uncontrolled calls to an Ubersmith instance.
-
-Built atop this wrapper, a templating suite is available for generating classes for each API section in Ubersmith, specific to each Ubersmith version to maximize compatibility.
 
 ## Installation
-
 ```bash
 # PyPi Installation
 pip install ubersmith-api
@@ -24,9 +18,23 @@ pip install ubersmith-api
 pip install git+'https://github.com/bnassif/ubersmith-api.git'
 ```
 
-## Getting Started
 
-### Instantiating the Base Client
+## Overview
+The `ubersmith-api` package ships two separate layers of usage, which offer varying levels of compatibility.
+
+Both levels use the robust `UbersmithConfig` Pydantic Settings object, which exposes all settings for how to interact with the API.
+
+
+### Universal Client
+The universal client, `UbersmithClient` provides a generic object for interacting with any Ubersmith version using the version 2.0 API. This object ships with just three methods bound to it:
+
+- `UbersmithClient.request()`: Method for making API calls
+- `UbersmithClient.system_info()`: Calls `user.system_info`
+- `UbersmithClient.method_list()`: Calls `user.method_list`
+- `UbersmithClient.method_get()`: Calls `user.method_get`
+
+
+#### Example Usage
 ```python
 from ubersmith import *
 
@@ -36,46 +44,55 @@ config = UbersmithConfig(
     password='api-token-for-user',
 )
 
-client = UbersmithClient(config)
-```
+api_client = UbersmithClient(config)
 
-### Making Calls
-
-```python
-response_obj = client.request(
-    'uber.method_get',
+client_info = api_client.request(
+    'client.get',
     data={
-        'method_name': 'client.get',
+        'client_id': 1234,
+        'metadata': True,
     },
-    #raw=True,
+    #raw=True, # Optionally return the unparsed `requests.Response` object
 )
 ```
 
-By default, the `request()` method will parse the response from the API, checking for HTTP error codes, as well as error messages from Ubersmith itself. If no errors are found, the returned `data` field is returned.
 
-Alternatively, you can parse `raw=True` to return the `requests.Response` object for manual parsing and error checking.
+### Version Specific Clients
+Built atop the universal client, version-specific clients are also shipped with `ubersmith-api` to provide more robust API interactions.
 
-### Shipped Methods
-The `UbersmithClient` class comes with three (3) core methods shipped.  
-These offer a simplified entrypoint to gathering parsed information of an Ubersmith system.
+Version-specific clients extend the `UbersmithClient` object by binding API sections to it, with each section having functions that correspond to API methods.
 
+
+#### Example Usage
 ```python
-# Get system information: calls `uber.system_info`
-sys_info = client.system_info()
+from ubersmith.versions import *
 
-# Get all available methods: calls `uber.method_list`
-all_methods = client.method_list()
+config = UbersmithConfig(
+    host='target-hostname-or-address',
+    username='username-to-use',
+    password='api-token-for-user',
+)
 
-# Get details of one method: calls `uber.method_get`
-method_details = client.method_get('client.get')
+api_client = get_client(version='5.1.3-rc2', config=config)
+
+client_info = api_client.client.get(
+  client_id=1234,
+  metadata=True,
+)
 ```
 
-## Future Compatibility
 
-**NOTE**: 
+> [!TIP]
+> Version specific clients are built using JSON schema files generated with API calls against an Ubersmith instance running the target version.
+> 
+> If your version is not supported, you are encouraged to generate a schema and submit its schema in a PR.  
+> See the [schema docs](SCHEMAS.md) for details on how to get started with generating and using schemas.
 
-Additional code is shipped in this repository, along with version-specific schemas for the Ubersmith API.  
-These features will be enabled in later releases of the package.
+
+> [!IMPORTANT]
+> Some API methods shipped by Ubersmith have unsafe parameter names.  
+> In these cases, the parameters and sometimes methods are omitted from generation to prevent unwanted errors.
+
 
 ## License
 MIT - Feel free to use, extend, and contribute.

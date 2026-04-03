@@ -17,3 +17,5 @@ build/
 
 # JetBrains IDE
 .idea/
+
+src/ubersmith/api/*.py

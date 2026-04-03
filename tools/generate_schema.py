@@ -6,6 +6,9 @@ import json
 
 from ubersmith.client import *
 
+THIS_FILE = pathlib.Path(__file__)
+REPO_ROOT = THIS_FILE.resolve().parents[1]
+
 def get_method_details(client: UbersmithClient, method: str) -> dict:
     try:
         method_details = client.method_get(method)
@@ -16,17 +19,17 @@ def get_method_details(client: UbersmithClient, method: str) -> dict:
     return method_details
 
 def get_sections(client: UbersmithClient) -> dict:
-    print("Listing methods...")
+    print("    Listing methods...")
     all_methods = client.method_list()
     method_count = len(all_methods)
-    print(f"{len(all_methods)} Methods Found")
+    print(f"    {len(all_methods)} Methods Found")
     print('')
     
-    print("Gathering method details. This may take a while...")
+    print("    Gathering method details. This may take a while...")
     index = 1
     sections = dict()
     for method in all_methods.keys():
-        print(f"Processing item {index}/{method_count}: {method}", end="\r", flush=True)
+        print(f"        Processing item {index}/{method_count}: {method}", end="\r", flush=True)
         sec, meth = method.split('.')
         if not sec in sections:
             sections[sec] = dict()
@@ -37,13 +40,13 @@ def get_sections(client: UbersmithClient) -> dict:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("-h", "--host", required=True)
+    ap.add_argument("-H", "--host", required=True)
     ap.add_argument("-P", "--port", default=None)
     ap.add_argument("-u", "--username", required=True)
     ap.add_argument("-p", "--password", required=True)
     ap.add_argument("-v", "--no-verify", default=False, action="store_true")
     ap.add_argument("-k", "--insecure", default=False, action="store_true")
-    ap.add_argument("-o", "--out-dir", default="../schema")
+    ap.add_argument("-o", "--out-dir", default="schema")
     ap.add_argument("-f", "--filename", default=None)
     args = ap.parse_args()
     
@@ -68,17 +71,17 @@ def main():
     version = client.system_info()['version']
     print(f'Running generation against Ubersmith version: {version}')
 
-    print(f"Gathering details from {cfg.host}...")
+    print(f"    Gathering details from {cfg.host}...")
     all_sections = get_sections(client)
     
     
-    out_dir = pathlib.Path(args.out_dir)
+    out_dir = (REPO_ROOT / args.out_dir)
     if args.filename:
         filename = args.filename
     else:
         filename = f'{version}.json'
     out_file = (out_dir / filename)
-    print(f'Writing files to {out_file}')
+    print(f'    Writing schema to {out_file}')
     
     with open(out_file, 'w') as f:
         json.dump(all_sections, f, indent=4)
